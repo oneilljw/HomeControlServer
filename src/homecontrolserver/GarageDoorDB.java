@@ -5,22 +5,18 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 public class GarageDoorDB implements ActionListener
 {
-	private static final int POLLING_RATE = 1000 * 3;
+	private static final int POLLING_RATE = 1000 * 5;	//Takes garage door 10 seconds to open/close. Nyquist
 	
 	private static GarageDoorDB instance = null;
 	String leftDoorOpen, rightDoorOpen;
@@ -29,8 +25,8 @@ public class GarageDoorDB implements ActionListener
 	private GarageDoorDB()
 	{
 		//initialize door status
-//		leftDoorOpen = getDoorStatusFromYun(Door.LEFT);
-//		rightDoorOpen = getDoorStatusFromYun(Door.LEFT);
+		getDoorStatusFromYun(Door.LEFT);
+		getDoorStatusFromYun(Door.RIGHT);
 		
 		//Create the polling timer
     	timer = new Timer(POLLING_RATE, this);
@@ -45,25 +41,54 @@ public class GarageDoorDB implements ActionListener
 		return instance;
 	}
 	
-	String getDoorStatusFromYun(Door door)
+	void getDoorStatusFromYun(Door door)
 	{
 		String stringURL = null;
+		String response = null;
+		
 		if(door == Door.LEFT)
+		{
 			stringURL = String.format("http://arduino.local/arduino/readL");
+			response = sendCommandToYun(stringURL);
+			
+			if(response != null && response.equals("Pin D2 value is 1"))
+			{
+				//left door is open
+				leftDoorOpen = "true";
+			}
+			else if(response != null && response.equals("Pin D2 value is 0"))
+			{
+				//left door is closed
+				leftDoorOpen = "false";
+			}
+			else
+			{
+				//ERROR OCCURRED
+			}
+		}
 		else
+		{
 			stringURL = String.format("http://arduino.local/arduino/readR");
-		
-		String response = sendCommandToYun(stringURL);
-		
-		if(response != null && response.contains("set to 1")  && door == Door.LEFT)
-			return "true";
-		else if (response != null && response.contains("set to 0"))
-			return "false";
-		else
-			return "false";
+			response = sendCommandToYun(stringURL);
+			
+			if(response != null && response.equals("Pin D3 value is 1"))
+			{
+				//right door is open
+				rightDoorOpen = "true";
+			}
+			else if(response != null && response.equals("Pin D3 value is 0"))
+			{
+				//right door is closed
+				rightDoorOpen = "false";
+			}
+			else
+			{
+				//ERROR OCCURRED
+			}
+		}
 	}
 	
-	String toggleGarageDoor(Door door)
+	String toggleGarageDoorUsingYun(Door door)
 	{
 		//form the String url request
 		String stringURL;
@@ -74,19 +99,11 @@ public class GarageDoorDB implements ActionListener
 		
 		String response = sendCommandToYun(stringURL);
 		
-		//if door was open, set status to closed. If door was closed, set status to open
-		if(response != null && door == Door.LEFT && response.equals("") && leftDoorOpen.equals("false"))
-			leftDoorOpen = "true";
-		else if(response != null && door == Door.LEFT && response.equals("") && leftDoorOpen.equals("false"))
-			leftDoorOpen = "false";
-		else if(response != null && door == Door.RIGHT && response.equals("")  && rightDoorOpen.equals("false"))
-			rightDoorOpen = "true";
-		else if(response != null && door == Door.RIGHT && response.equals("") && rightDoorOpen.equals("true"))
-			rightDoorOpen = "false";
-		
-		if(response != null)
-			return String.format("UPDATED_GARAGE_DOOR{\"bLeftDoorOpen\":%s,\"bRightDoorOpen\":%s}", 
-					leftDoorOpen, rightDoorOpen);
+		//if operation was successful, notify the client. It's the clients responsibility to check the status to 
+		//see if the operation actually changed the door.
+		if(response != null && door == Door.LEFT && response.equals("Pin D11 value is 0") ||
+			door == Door.RIGHT && response.equals("Pin D12 value is 0"))
+			return "UPDATED_GARAGE_DOOR";
 		else
 			return "UPDATE_GARAGE_DOOR_FAILED";	
 	}
@@ -144,37 +161,38 @@ public class GarageDoorDB implements ActionListener
 		}
 			    
 		//return the response as a string
-//		System.out.println("Arduino response: " + response.toString());
+//		System.out.println(String.format("Commmand: %s, Arduino response: %s",
+//							stringURL, response.toString()));
+		
 		return response.toString();
 	}
 	
 	String getGarageDoorStatus()
 	{ 
-		return String.format("UPDATED_GARAGE_DOOR{\"bLeftDoorOpen\":%s,\"bRightDoorOpen\":%s}", 
+		return String.format("STATUS_GARAGE_DOOR{\"bLeftDoorOpen\":%s,\"bRightDoorOpen\":%s}", 
 								leftDoorOpen, rightDoorOpen);
 	}
 	
 	String update(String json)
 	{
 		Gson gson = new Gson();
-		GarageDoor garageDoor = gson.fromJson(json, GarageDoor.class);
+		GarageDoor garageDoorCmmd = gson.fromJson(json, GarageDoor.class);
 		
 		timer.stop();
-		String response = null;
+		String response = "UNCHANGED_GARAGE_DOOR";
 		
-		if(garageDoor.isLeftDoorOpen() && leftDoorOpen.equals("false"))
-			response = toggleGarageDoor(Door.LEFT);
-		else if(!garageDoor.isLeftDoorOpen() && leftDoorOpen.equals("true"))
-			response = toggleGarageDoor(Door.LEFT);
-		else if(garageDoor.isRightDoorOpen() && rightDoorOpen.equals("false"))
-			response = toggleGarageDoor(Door.RIGHT);
-		else if(!garageDoor.isRightDoorOpen() && rightDoorOpen.equals("true"))
-			response = toggleGarageDoor(Door.RIGHT);
-		
+		if(garageDoorCmmd.isLeftDoorOpen() && leftDoorOpen.equals("false"))
+			response = toggleGarageDoorUsingYun(Door.LEFT);
+		else if(!garageDoorCmmd.isLeftDoorOpen() && leftDoorOpen.equals("true"))
+			response = toggleGarageDoorUsingYun(Door.LEFT);
+		else if(garageDoorCmmd.isRightDoorOpen() && rightDoorOpen.equals("false"))
+			response = toggleGarageDoorUsingYun(Door.RIGHT);
+		else if(!garageDoorCmmd.isRightDoorOpen() && rightDoorOpen.equals("true"))
+			response = toggleGarageDoorUsingYun(Door.RIGHT);
 		
 		timer.start();
 		
-		return null; 
+		return response;
 	}
 
 	@Override
@@ -183,15 +201,12 @@ public class GarageDoorDB implements ActionListener
 		if(e.getSource() == timer)
 		{
 			timer.stop();
-			String newLeftDoorOpen = getDoorStatusFromYun(Door.LEFT);
-			String newRightDoorOpen = getDoorStatusFromYun(Door.RIGHT);
 			
-			if(!leftDoorOpen.equals(newLeftDoorOpen) || !rightDoorOpen.equals(newRightDoorOpen))
-			{
-				//a change has been detected, pass it to connected clients
-				
-			}
-			System.out.println(String.format("Left Door Open: %s",  leftDoorOpen));
+			getDoorStatusFromYun(Door.LEFT);
+			getDoorStatusFromYun(Door.RIGHT);
+			
+//			System.out.println(String.format("STATUS_GARAGE_DOOR{\"bLeftDoorOpen\":%s,\"bRightDoorOpen\":%s}", 
+//												leftDoorOpen, rightDoorOpen));
 			timer.start();
 		}
 	}

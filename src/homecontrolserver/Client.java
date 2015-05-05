@@ -141,7 +141,7 @@ public class Client extends Thread
                 	String response = garageDoorDB.update(command.substring(23));
                 	output.println(response);
                 	clientMgr.addLogMessage(response);
-                	clientMgr.dataChanged(this, response);
+//                	clientMgr.dataChanged(this, response);
                 }
                 else if (command.startsWith("LOGOUT")) 
                 {
@@ -251,4 +251,3 @@ public class Client extends Thread
     	return "John";
     }
 }
-
