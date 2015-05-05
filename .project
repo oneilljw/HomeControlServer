@@ -3,7 +3,6 @@
 	<name>HomeControlServer</name>
 	<comment></comment>
 	<projects>
-		<project>HomeControlClient</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
