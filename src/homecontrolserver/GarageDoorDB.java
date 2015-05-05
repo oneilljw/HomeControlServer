@@ -1,5 +1,7 @@
 package homecontrolserver;
 
+import homecontrolclient.GarageDoor;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -13,6 +15,7 @@ import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 import com.google.gson.Gson;
+
 
 public class GarageDoorDB implements ActionListener
 {
