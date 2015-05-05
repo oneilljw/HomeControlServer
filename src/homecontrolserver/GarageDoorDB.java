@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 public class GarageDoorDB implements ActionListener
 {
 	private static final int POLLING_RATE = 1000 * 5;	//Takes garage door 10 seconds to open/close. Nyquist
+	private static final boolean YUN_CONNECTED = false;
 	
 	private static GarageDoorDB instance = null;
 	String leftDoorOpen, rightDoorOpen;
@@ -25,8 +26,16 @@ public class GarageDoorDB implements ActionListener
 	private GarageDoorDB()
 	{
 		//initialize door status
-		getDoorStatusFromYun(Door.LEFT);
-		getDoorStatusFromYun(Door.RIGHT);
+		if(YUN_CONNECTED)
+		{
+			getDoorStatusFromYun(Door.LEFT);
+			getDoorStatusFromYun(Door.RIGHT);
+		}
+		else
+		{
+			leftDoorOpen = "false";
+			rightDoorOpen = "false";
+		}
 		
 		//Create the polling timer
     	timer = new Timer(POLLING_RATE, this);
@@ -202,8 +211,16 @@ public class GarageDoorDB implements ActionListener
 		{
 			timer.stop();
 			
-			getDoorStatusFromYun(Door.LEFT);
-			getDoorStatusFromYun(Door.RIGHT);
+			if(YUN_CONNECTED)
+			{
+				getDoorStatusFromYun(Door.LEFT);
+				getDoorStatusFromYun(Door.RIGHT);
+			}
+			else
+			{
+				leftDoorOpen = "false";
+				rightDoorOpen = "false";
+			}
 			
 //			System.out.println(String.format("STATUS_GARAGE_DOOR{\"bLeftDoorOpen\":%s,\"bRightDoorOpen\":%s}", 
 //												leftDoorOpen, rightDoorOpen));
