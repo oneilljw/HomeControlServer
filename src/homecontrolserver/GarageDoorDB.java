@@ -19,12 +19,13 @@ import com.google.gson.Gson;
 
 public class GarageDoorDB implements ActionListener
 {
-	private static final int POLLING_RATE = 1000 * 5;	//Takes garage door 10 seconds to open/close. Nyquist
+	//Takes garage door 10 seconds to open/close. Nyquist
+	private static final int STATUS_POLLING_RATE = 1000 * 5;	
 	private static final boolean YUN_CONNECTED = false;
 	
 	private static GarageDoorDB instance = null;
 	String leftDoorOpen, rightDoorOpen;
-	private Timer timer;
+	private Timer doorStatusTimer;
 	
 	private GarageDoorDB()
 	{
@@ -41,8 +42,8 @@ public class GarageDoorDB implements ActionListener
 		}
 		
 		//Create the polling timer
-    	timer = new Timer(POLLING_RATE, this);
-    	timer.start();
+    	doorStatusTimer = new Timer(STATUS_POLLING_RATE, this);
+    	doorStatusTimer.start();
 	}
 	
 	public static GarageDoorDB getInstance()
@@ -190,7 +191,7 @@ public class GarageDoorDB implements ActionListener
 		Gson gson = new Gson();
 		GarageDoor garageDoorCmmd = gson.fromJson(json, GarageDoor.class);
 		
-		timer.stop();
+		doorStatusTimer.stop();
 		String response = "UNCHANGED_GARAGE_DOOR";
 		
 		if(garageDoorCmmd.isLeftDoorOpen() && leftDoorOpen.equals("false"))
@@ -202,7 +203,7 @@ public class GarageDoorDB implements ActionListener
 		else if(!garageDoorCmmd.isRightDoorOpen() && rightDoorOpen.equals("true"))
 			response = toggleGarageDoorUsingYun(Door.RIGHT);
 		
-		timer.start();
+		doorStatusTimer.start();
 		
 		return response;
 	}
@@ -210,9 +211,9 @@ public class GarageDoorDB implements ActionListener
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(e.getSource() == timer)
+		if(e.getSource() == doorStatusTimer)
 		{
-			timer.stop();
+			doorStatusTimer.stop();
 			
 			if(YUN_CONNECTED)
 			{
@@ -227,7 +228,7 @@ public class GarageDoorDB implements ActionListener
 			
 //			System.out.println(String.format("STATUS_GARAGE_DOOR{\"bLeftDoorOpen\":%s,\"bRightDoorOpen\":%s}", 
 //												leftDoorOpen, rightDoorOpen));
-			timer.start();
+			doorStatusTimer.start();
 		}
 	}
 	
