@@ -21,7 +21,7 @@ public class GarageDoorDB implements ActionListener
 {
 	//Takes garage door 10 seconds to open/close. Nyquist
 	private static final int STATUS_POLLING_RATE = 1000 * 5;	
-	private static final boolean YUN_CONNECTED = false;
+	private static final boolean YUN_CONNECTED = true;
 	
 	private static GarageDoorDB instance = null;
 	String leftDoorOpen, rightDoorOpen;
