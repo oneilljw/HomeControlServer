@@ -112,10 +112,10 @@ public class Client extends Thread
                 }
                 else if(command.startsWith("GET<garage_door_status>"))
                 {
-                	clientMgr.addLogMessage(command);
+//                	clientMgr.addLogMessage(command);
                 	String response = garageDoorDB.getGarageDoorStatus();
                 	output.println(response);
-                	clientMgr.addLogMessage(response);               	
+//                	clientMgr.addLogMessage(response);               	
                 }
                 else if(command.startsWith("GET<changes>"))
                 {   
