@@ -58,7 +58,10 @@ public class ServerLoop extends Thread
     	}
     }
     
-    void stopServer() { bRunServer = false;}
+    void stopServer()
+    {
+    	bRunServer = false;
+    }
     
     boolean terminateServer()
     {

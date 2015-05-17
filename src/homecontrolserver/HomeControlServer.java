@@ -132,7 +132,6 @@ public class HomeControlServer
     	serverIF = new ServerLoop(clientMgr);
     	
     	serverIF.start();
-		serverUI.setStoplight(0);	//Set server status to green - running
 		
 		serverUI.addLogMessage("Server Interface Loop started");
 		
@@ -155,7 +154,8 @@ public class HomeControlServer
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		serverUI.setStoplight(2);	//Set server status to green - running
+		serverUI.setStoplight(0, 4);	//Set left door status to unknown
+		serverUI.setStoplight(1, 4);	//Set right door status to unknown
 		
 		serverUI.addLogMessage("Server Interface Loop stopped");
 		

@@ -24,7 +24,7 @@ public class GarageDoorDB implements ActionListener
 	private static final boolean YUN_CONNECTED = true;
 	
 	private static GarageDoorDB instance = null;
-	String leftDoorOpen, rightDoorOpen;
+	private String leftDoorOpen, rightDoorOpen;
 	private Timer doorStatusTimer;
 	
 	private GarageDoorDB()
@@ -40,6 +40,17 @@ public class GarageDoorDB implements ActionListener
 			leftDoorOpen = "false";
 			rightDoorOpen = "false";
 		}
+		
+		//set the stoplight status
+		if(leftDoorOpen.equals("true"))
+			ServerUI.setStoplight(0, 2);
+		else
+			ServerUI.setStoplight(0, 0);
+		
+		if(rightDoorOpen.equals("true"))
+			ServerUI.setStoplight(1, 2);
+		else
+			ServerUI.setStoplight(1, 0);
 		
 		//Create the polling timer
     	doorStatusTimer = new Timer(STATUS_POLLING_RATE, this);
@@ -195,13 +206,25 @@ public class GarageDoorDB implements ActionListener
 		String response = "UNCHANGED_GARAGE_DOOR";
 		
 		if(garageDoorCmmd.isLeftDoorOpen() && leftDoorOpen.equals("false"))
+		{
 			response = toggleGarageDoorUsingYun(Door.LEFT);
+			ServerUI.setStoplight(0, 1);
+		}
 		else if(!garageDoorCmmd.isLeftDoorOpen() && leftDoorOpen.equals("true"))
+		{
 			response = toggleGarageDoorUsingYun(Door.LEFT);
+			ServerUI.setStoplight(0, 1);
+		}
 		else if(garageDoorCmmd.isRightDoorOpen() && rightDoorOpen.equals("false"))
+		{
 			response = toggleGarageDoorUsingYun(Door.RIGHT);
+			ServerUI.setStoplight(1, 1);
+		}
 		else if(!garageDoorCmmd.isRightDoorOpen() && rightDoorOpen.equals("true"))
+		{
 			response = toggleGarageDoorUsingYun(Door.RIGHT);
+			ServerUI.setStoplight(1, 1);
+		}
 		
 		doorStatusTimer.start();
 		
@@ -225,6 +248,17 @@ public class GarageDoorDB implements ActionListener
 				leftDoorOpen = "false";
 				rightDoorOpen = "false";
 			}
+			
+			//set the stoplight status
+			if(leftDoorOpen.equals("true"))
+				ServerUI.setStoplight(0, 2);
+			else
+				ServerUI.setStoplight(0, 0);
+			
+			if(rightDoorOpen.equals("true"))
+				ServerUI.setStoplight(1, 2);
+			else
+				ServerUI.setStoplight(1, 0);
 			
 //			System.out.println(String.format("STATUS_GARAGE_DOOR{\"bLeftDoorOpen\":%s,\"bRightDoorOpen\":%s}", 
 //												leftDoorOpen, rightDoorOpen));

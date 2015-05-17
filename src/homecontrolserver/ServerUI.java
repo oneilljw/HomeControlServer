@@ -40,12 +40,12 @@ public class ServerUI extends JPanel implements ListSelectionListener
 	private static final int LOG_TEXT_FONT_SIZE = 13;
 	
 	private static ServerUI instance = null;	//Only one UI
-	private transient ImageIcon imageIcons[];
+	private transient static ImageIcon imageIcons[];
 	public JButton btnStartServer, btnStopServer, btnKillClient;
 	private JTextArea logTA;
 //	private StyledDocument logDoc;	//document that holds log text
 	private JLabel lblNumClients;
-	private JRadioButton rbStoplight;
+	private static JRadioButton leftDoorStoplight, rightDoorStoplight;
 //	private ONCTable clientTable;
 	private JTable clientTable;
 	private DefaultTableModel clientTableModel;
@@ -89,10 +89,14 @@ public class ServerUI extends JPanel implements ListSelectionListener
 		
 		lblNumClients = new JLabel("Clients Connected: 0");
 		statusPanelCenter.add(lblNumClients);
+		
+		leftDoorStoplight = new JRadioButton(imageIcons[4]);
+    	leftDoorStoplight.setToolTipText("");
+    	statusPanelRight.add(leftDoorStoplight);
 	    
-		rbStoplight = new JRadioButton(imageIcons[4]);
-    	rbStoplight.setToolTipText("");
-    	statusPanelRight.add(rbStoplight);
+		rightDoorStoplight = new JRadioButton(imageIcons[4]);
+    	rightDoorStoplight.setToolTipText("");
+    	statusPanelRight.add(rightDoorStoplight);
     	
     	statusPanel.add(statusPanelLeft);
     	statusPanel.add(statusPanelCenter);
@@ -286,10 +290,15 @@ public class ServerUI extends JPanel implements ListSelectionListener
 		logTA.setCaretPosition(logTA.getDocument().getLength());
 	}
 	
-	void setStoplight(int pos)	//0-green, 1-yellow, 2-red, 3-off
+	static void setStoplight(int door, int pos)	//closed-green, 1-moving, 2-open, 3-unknown
 	{
 		if(pos >= 0 && pos < 4)
-			rbStoplight.setIcon(imageIcons[pos+1]);
+		{
+			if(door == 0)
+				leftDoorStoplight.setIcon(imageIcons[pos+1]);
+			else if(door == 1)
+				rightDoorStoplight.setIcon(imageIcons[pos+1]);
+		}	
 	}
 	
 	ImageIcon getIcon(int index) { return imageIcons[index]; }
